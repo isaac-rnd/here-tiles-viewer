@@ -1,5 +1,6 @@
 --extra-index-url https://repo.platform.here.com/artifactory/api/pypi/analytics-pypi/simple/
 --only-binary=:all:
+numpy==1.26.4
 pyarrow==21.0.0
 Flask
 flask-cors
