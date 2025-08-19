@@ -1,6 +1,6 @@
 --extra-index-url https://repo.platform.here.com/artifactory/api/pypi/analytics-pypi/simple/
 --only-binary=:all:
-pyarrow==15.0.2
+pyarrow==21.0.0
 Flask
 flask-cors
 mapquadlib
