@@ -2,7 +2,7 @@
 --only-binary=:all:
 numpy==1.26.4
 pyarrow==21.0.0
-keplergl==0.3.7
+keplergl
 Flask
 flask-cors
 mapquadlib
