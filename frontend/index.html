@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HERE Tile Visualizer</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <style>
+    body { margin:0; font-family: Inter, system-ui, Arial; }
+    #app { display:flex; height:100vh; }
+    #sidebar { width:340px; padding:16px; box-shadow:2px 0 8px rgba(0,0,0,0.08); background:#fff; overflow:auto }
+    #map { flex:1 }
+    h1{margin:0 0 12px 0;font-size:18px}
+    label{display:block;margin-top:12px;font-weight:600}
+    input, button{width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-top:6px}
+    button{background:#0b5cff;color:#fff;border:none;cursor:pointer}
+    button:hover{background:#0949c7}
+    .muted{color:#666;font-size:13px;margin-top:12px}
+    .info{margin-top:12px;padding:10px;border-radius:8px;background:#f7f9fb;border:1px solid #eef2f6}
+    code{background:#f4f6f8;padding:2px 6px;border-radius:4px}
+    footer{margin-top:16px;font-size:13px;color:#666}
+.level-label {
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: bold;
+  text-align: center;
+    user-select: text;
+  pointer-events: auto;
+}
+
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="sidebar">
+      <h1>HERE Tile Visualizer</h1>
+      <label for="tileId">HERE Tile ID</label>
+      <input id="tileId" placeholder="e.g. 377613473" />
+      <button id="showBtn">Show Tile</button>
+
+      <div class="info">
+        <strong>Tile information</strong>
+        <div id="meta">No tile yet.</div>
+      </div>
+
+      <footer>
+         <a href="https://oxidase.github.io/nds/" target="_blank" rel="noopener">Oxidase for NDS Tile Viewer</a>.
+        <br/><br/>Made in Bengaluru ❤️ <a href="https://github.com/isaac-rnd/here-tiles-viewer/issues/new/choose" target="_blank" rel="noopener"> Suggest Changes here </a> 
+        </footer>
+    </div>
+    <div id="map"></div>
+  </div>
+
+  <script>
+    // Set this to your deployed backend URL (Render/Railway/etc.).
+    // Example: window.BACKEND_URL = "https://here-tiles.onrender.com";
+    window.BACKEND_URL = window.BACKEND_URL || "http://localhost:5000";
+  </script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script>
+    const map = L.map('map',{ worldCopyJump:true }).setView([20,0],2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+    let currentLayer = null;
+    const meta = document.getElementById('meta');
+
+    async function callApi(tileId){
+      const resp = await fetch(`${window.BACKEND_URL}/api/tile`, {
+        method:'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ tile_id: tileId })
+      });
+      if(!resp.ok){
+        const err = await resp.json().catch(()=>({error:'unknown'}));
+        throw new Error(err.error || 'API error');
+      }
+      return resp.json();
+    }
+
+document.getElementById('showBtn').addEventListener('click', async ()=>{
+  const tileId = document.getElementById('tileId').value.trim();
+  if(!tileId){ alert('Please enter a HERE Tile ID'); return; }
+  try{
+    const res = await callApi(tileId);
+    if(!res.ok) throw new Error(res.error || 'no result');
+    const { bbox, tile, geojson } = res;
+
+    // clear old layer
+    if(currentLayer) map.removeLayer(currentLayer);
+
+    // draw new polygon
+    currentLayer = L.geoJSON(geojson, { 
+      style:{ color:'#ff0000', weight:3, opacity:0.9 }
+    }).addTo(map);
+
+    // add permanent tooltip for level
+currentLayer.eachLayer(layer => {
+  if (layer instanceof L.Polygon) {
+    const bounds = layer.getBounds();
+    const northWest = bounds.getNorthWest();
+
+    L.tooltip({
+      permanent: true,
+      direction: "left",
+      offset: L.point(0, 0),
+      className: "level-label"
+    })
+    .setContent("Here Tile ID:" + tile.id)
+    .setLatLng(northWest)
+    .addTo(map);
+  }
+});
+
+
+    // zoom map to polygon
+    map.fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]], { padding:[28,28] });
+
+    // update meta box
+    meta.innerHTML = `
+      <div><strong>ID:</strong> ${tile.id}</div>
+      <div><strong>Level:</strong> ${tile.level}</div>
+      <div style="margin-top:6px"><strong>Bounding Box:</strong><br/><code>${bbox.map(n=>Number(n).toFixed(6)).join(', ')}</code></div>
+    `;
+  }catch(err){
+    alert('Error: ' + err.message);
+  }
+});
+  </script>
+</body>
+</html>

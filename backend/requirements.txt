@@ -1,0 +1,10 @@
+--extra-index-url https://repo.platform.here.com/artifactory/api/pypi/analytics-pypi/simple/
+Flask
+flask-cors
+mapquadlib
+here-platform==2.30.1
+here-geotiles==2.30.1
+here-geopandas-adapter==2.30.1
+here-content==2.30.1
+here-inspector==2.30.1
+gunicorn
