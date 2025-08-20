@@ -4,9 +4,9 @@ A quick little utility I built to help differentiate HERE Tiles from NDS Tiles d
 this tool shows you the bounding box, zoom level, and location on a map how they do it from here side.
 mostly it's the same but the level part is where there is some change anyway here is the:
 
-🌍 Frontend: isaac-rnd.github.io/here-tiles-viewer
+🌍 [Frontend UI is deployed here now](https://isaac-rnd.github.io/here-tiles-viewer)
 
-⚙️ have hoisted Backend here : here-tiles-viewer.onrender.com ( Personal account please have mercy )
+⚙️ [Backend (hoisted here — personal account, please have mercy 🙏)](https://here-tiles-viewer.onrender.com)
 
 Why?
 Because need to know: “Is this HERE Tile or an NDS Tile?”
